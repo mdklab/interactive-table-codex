@@ -44,6 +44,14 @@ test("parseCsv returns column_mismatch for row length mismatch", () => {
   assert.equal(result.error.code, "column_mismatch");
 });
 
+
+test("parseCsv returns malformed_csv for quotes appearing mid-field", () => {
+  const result = parseCsv('name\na"b"c');
+
+  assert.equal(result.ok, false);
+  assert.equal(result.error.code, "malformed_csv");
+});
+
 test("parseCsv returns invalid_encoding for non-UTF-8 bytes", () => {
   const result = parseCsv(new Uint8Array([0xc3, 0x28]));
 

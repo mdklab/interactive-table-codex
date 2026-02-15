@@ -4,25 +4,59 @@ const parseCsvLine = (line) => {
   const cells = [];
   let current = "";
   let inQuotes = false;
+  let fieldStartsWithQuote = false;
 
   for (let i = 0; i < line.length; i += 1) {
     const char = line[i];
 
     if (char === '"') {
       const nextChar = line[i + 1];
+
+      if (!inQuotes) {
+        if (current.length > 0) {
+          return {
+            ok: false,
+            code: "malformed_csv",
+            message: "Quote characters must start at the beginning of a field."
+          };
+        }
+
+        inQuotes = true;
+        fieldStartsWithQuote = true;
+        continue;
+      }
+
       if (inQuotes && nextChar === '"') {
         current += '"';
         i += 1;
         continue;
       }
-      inQuotes = !inQuotes;
+
+      if (nextChar !== "," && nextChar !== undefined) {
+        return {
+          ok: false,
+          code: "malformed_csv",
+          message: "Closing quote must be followed by a comma or end of line."
+        };
+      }
+
+      inQuotes = false;
       continue;
     }
 
     if (char === "," && !inQuotes) {
       cells.push(current);
       current = "";
+      fieldStartsWithQuote = false;
       continue;
+    }
+
+    if (!inQuotes && fieldStartsWithQuote) {
+      return {
+        ok: false,
+        code: "malformed_csv",
+        message: "Characters after a closing quote must be separated by a comma."
+      };
     }
 
     current += char;

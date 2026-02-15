@@ -6,7 +6,7 @@
   - normalizes line endings,
   - parses comma-delimited rows with quoted field and escaped quote support,
   - returns deterministic structured errors (`invalid_encoding`, `malformed_csv`, `column_mismatch`, `empty_input`, `invalid_input`).
-- Added `tests/csvParser.test.mjs` with unit coverage for simple parsing, quoted values, blank lines, malformed input, column mismatch, and invalid UTF-8.
+- Added `tests/csvParser.test.mjs` with unit coverage for simple parsing, quoted values, blank lines, malformed input (including quotes appearing mid-field), column mismatch, and invalid UTF-8.
 
 ## Why
 - Issue #9 requests a robust, testable CSV parser module that returns consistent table-model output and actionable parser errors.
