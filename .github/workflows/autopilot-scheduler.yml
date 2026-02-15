@@ -9,6 +9,24 @@ permissions:
   issues: write
   pull-requests: read
 
+env:
+  CI_PROMPT: |
+    @codex
+    Implement issue #{{TASK_NUMBER}} as a pull request.
+    
+    Hard constraints:
+    - Follow AGENTS.md.
+    - Keep PR small (<= 400 changed lines). If larger, split and deliver first slice.
+    - Add an Evidence Pack: docs/evidence/ISSUE-{{TASK_NUMBER}}-<slug>.md (use template).
+    - Run \\`make ci\\` and report results in Evidence Pack.
+    
+    PR requirements:
+    - Include "Fixes #{{TASK_NUMBER}}" in PR description.
+    - If CI fails, iterate until green.
+    
+    When finished:
+    - Post a short summary comment on the issue with the PR link.
+
 jobs:
   tick:
     runs-on: ubuntu-latest
@@ -58,23 +76,8 @@ jobs:
             await github.rest.issues.removeLabel({ owner, repo, issue_number: task.number, name: "status:ready" }).catch(()=>{});
             await github.rest.issues.addLabels({ owner, repo, issue_number: task.number, labels: ["status:in-progress"] }).catch(()=>{});
 
-            const prompt = `
-@codex
-Implement issue #${task.number} as a pull request.
-
-Hard constraints:
-- Follow AGENTS.md.
-- Keep PR small (<= 400 changed lines). If larger, split and deliver first slice.
-- Add an Evidence Pack: docs/evidence/ISSUE-${task.number}-<slug>.md (use template).
-- Run \\`make ci\\` and report results in Evidence Pack.
-
-PR requirements:
-- Include "Fixes #${task.number}" in PR description.
-- If CI fails, iterate until green.
-
-When finished:
-- Post a short summary comment on the issue with the PR link.
-`;
+            let prompt = process.env.CI_PROMPT;
+            prompt = prompt.replace("{{TASK_NUMBER}}", task.number);
 
             await github.rest.issues.createComment({
               owner, repo,
