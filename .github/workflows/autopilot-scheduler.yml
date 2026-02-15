@@ -31,6 +31,18 @@ env:
     When finished:
     - Post a short summary comment on the issue with the PR link.
 
+    Publishing is mandatory:
+    - You MUST push your branch to origin and create a GitHub PR.
+    - Do NOT stop after local commits or `make_pr` tool output.
+    - If you cannot push or create a PR, STOP and reply with "PUBLISH_BLOCKED" and the exact error.
+    
+    Steps:
+    1) Create branch: issue-<ISSUE>-<slug>
+    2) Commit
+    3) git push -u origin HEAD
+    4) gh pr create --base main --head <branch> --title "<issue title>" --body "Fixes #<ISSUE>"
+    5) Comment the PR link on the issue (if API available) or at least on the PR.
+
 jobs:
   tick:
     runs-on: ubuntu-latest
