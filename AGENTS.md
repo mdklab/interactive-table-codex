@@ -1,4 +1,4 @@
-# AGENTS.md — Project working agreements (Codex + humans)
+# AGENTS.md â€” Project working agreements (Codex + humans)
 
 ## North Star
 Ship small, safe, verifiable changes. Every PR must be easy to review and easy to roll back.
@@ -30,3 +30,10 @@ For any code change PR, add/update:
 - P0: security, data integrity, authz, secrets
 - P1: correctness and regressions
 - P2: maintainability
+
+<!--PROTECTED:START-->
+## Non-negotiables
+- Never change production deploy workflow without explicit approval.
+- Never add secrets to repo.
+- Always keep PRs small unless explicitly allowed.
+<!--PROTECTED:END-->
