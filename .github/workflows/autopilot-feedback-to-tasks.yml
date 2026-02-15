@@ -7,6 +7,21 @@ on:
 permissions:
   issues: write
 
+env:
+  CI_PROMPT: |
+    @codex
+
+    Convert the following release feedback into 3-10 implementable GitHub issues.
+    Follow AGENTS.md and keep tasks small.
+
+    Output STRICT JSON in code fence ```autopilot-backlog-json``` with fields:
+    - title
+    - body_markdown
+    - labels (must include status:ready and autopilot:enabled)
+
+    Feedback:
+    {{COMMENT}}
+
 jobs:
   feedback:
     runs-on: ubuntu-latest
@@ -31,19 +46,8 @@ jobs:
               return;
             }
 
-            const prompt = `
-@codex
-Convert the following release feedback into 3-10 implementable GitHub issues.
-Follow AGENTS.md and keep tasks small.
-
-Output STRICT JSON in code fence \\`\\`\\`autopilot-backlog-json ...\\`\\`\\` with fields:
-- title
-- body_markdown
-- labels (must include status:ready and autopilot:enabled)
-
-Feedback:
-${comment}
-`;
+            let prompt = process.env.CI_PROMPT;
+            prompt = prompt.replace("{{COMMENT}}", comment);
 
             await github.rest.issues.createComment({
               owner, repo, issue_number: issue.number,
