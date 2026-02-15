@@ -1,16 +1,22 @@
-.PHONY: setup ci test lint fmt dev
+.PHONY: setup ci test lint fmt build dev
 
 setup:
-	@echo "TODO: install dependencies (Codex should define this once stack is chosen)"
+	npm ci
 
 fmt:
-	@echo "TODO: formatting"
+	npm run fmt
 
 lint:
-	@echo "TODO: linting"
+	npm run lint
 
 test:
-	@echo "TODO: tests"
+	npm run test
 
-ci: fmt lint test
-	@echo "CI completed (placeholder)"
+build:
+	npm run build
+
+ci: setup fmt lint test build
+
+# serves the static build output
+dev: build
+	python3 -m http.server 4173 --directory dist

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Interactive Table</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <h1>Interactive Table</h1>
+      <label for="search">Filter rows</label>
+      <input id="search" type="search" placeholder="Type to filter by name or city" />
+      <table>
+        <thead>
+          <tr>
+            <th><button id="sortName" type="button">Name</button></th>
+            <th>Role</th>
+            <th><button id="sortCity" type="button">City</button></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </main>
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>
