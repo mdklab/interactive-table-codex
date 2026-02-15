@@ -9,6 +9,10 @@ permissions:
   issues: write
   pull-requests: read
 
+concurrency:
+  group: autopilot-scheduler
+  cancel-in-progress: true
+
 env:
   CI_PROMPT: |
     @codex
@@ -39,6 +43,17 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
+            // HARD LOCK: if there is any in-progress issue, do not start another
+            const inProgress = await github.rest.issues.listForRepo({
+              owner, repo,
+              state: "open",
+              labels: "status:in-progress,autopilot:enabled",
+              per_page: 1
+            });
+            if (inProgress.data.length > 0) {
+              return;
+            }
+
             // Stop switch: if there exists any open issue labeled autopilot:paused, do nothing
             const paused = await github.rest.issues.listForRepo({
               owner, repo,
@@ -55,7 +70,7 @@ jobs:
               per_page: 50
             });
             const openAutopilotPR = prs.data.find(pr =>
-              (pr.labels || []).some(l => l.name === "autopilot:enabled")
+              !pr.draft && (pr.labels || []).some(l => l.name === "autopilot:enabled")
             );
             if (openAutopilotPR) return;
 
