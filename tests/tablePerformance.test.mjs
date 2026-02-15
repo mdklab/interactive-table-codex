@@ -46,6 +46,19 @@ test("getVisibleRange computes bounded windows for virtualization", () => {
   assert.deepEqual(range, { start: 197, end: 223 });
 });
 
+
+test("getVisibleRange clamps start when scrollTop exceeds reduced dataset", () => {
+  const range = getVisibleRange({
+    totalRows: 10,
+    rowHeight: 28,
+    scrollTop: 28 * 50,
+    viewportHeight: 28 * 5,
+    overscan: 2
+  });
+
+  assert.deepEqual(range, { start: 7, end: 10 });
+});
+
 test("chunkRows yields deterministic chunk batches", async () => {
   const rows = buildRows(105);
   const chunks = [];

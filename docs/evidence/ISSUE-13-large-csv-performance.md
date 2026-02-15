@@ -38,3 +38,9 @@
   - Utility functions could diverge from future UI behavior if not kept as the single composition path.
 - Rollback plan:
   - Revert this PR commit to restore prior filtering/sorting composition.
+
+
+## Follow-up update (review feedback)
+- Fixed virtualization bounds edge case in `getVisibleRange` where stale `scrollTop` from a previously larger dataset could produce `start > end`.
+- Added regression test to validate clamping when `scrollTop` exceeds the current filtered dataset size.
+- Re-ran `make ci` after the fix; all checks passed.
