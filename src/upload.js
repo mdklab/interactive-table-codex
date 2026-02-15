@@ -33,18 +33,31 @@ export const validateCsvFile = (file) => {
   };
 };
 
-export const initCsvUpload = ({ input, status }) => {
-  if (!input || !status) {
+export const setProcessButtonState = (processButton, valid) => {
+  const shouldDisable = !valid;
+
+  processButton.disabled = shouldDisable;
+
+  if (typeof processButton.toggleAttribute === "function") {
+    processButton.toggleAttribute("disabled", shouldDisable);
+  }
+};
+
+export const initCsvUpload = ({ input, status, processButton }) => {
+  if (!input || !status || !processButton) {
     return;
   }
 
   const setStatus = ({ valid, message }) => {
     status.textContent = message;
     status.dataset.state = valid ? "success" : "error";
+    setProcessButtonState(processButton, valid);
   };
 
-  input.addEventListener("change", () => {
-    const [selectedFile] = input.files ?? [];
+  setProcessButtonState(processButton, false);
+
+  input.addEventListener("change", (event) => {
+    const [selectedFile] = event.target?.files ?? input.files ?? [];
     setStatus(validateCsvFile(selectedFile));
   });
 };

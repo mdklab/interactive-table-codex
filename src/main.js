@@ -119,13 +119,15 @@ const init = () => {
   const clearAllFilters = document.querySelector("#clearAllFilters");
   const csvUpload = document.querySelector("#csvUpload");
   const uploadStatus = document.querySelector("#uploadStatus");
+  const processCsv = document.querySelector("#processCsv");
 
   if (
     !tableBody ||
     sortButtons.length === 0 ||
     !clearAllFilters ||
     Object.values(filterInputs).some((input) => !input) ||
-    Object.values(clearButtons).some((button) => !button)
+    Object.values(clearButtons).some((button) => !button) ||
+    !processCsv
   ) {
     return;
   }
@@ -170,7 +172,7 @@ const init = () => {
     });
   });
 
-  initCsvUpload({ input: csvUpload, status: uploadStatus });
+  initCsvUpload({ input: csvUpload, status: uploadStatus, processButton: processCsv });
 
   void refresh();
 };
