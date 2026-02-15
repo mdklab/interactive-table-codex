@@ -24,7 +24,7 @@ If these targets are missing or broken, your first task is to fix/define them.
 
 ## Evidence Pack
 After implementing:
-1) Create branch: work/issue-<ISSUE>-<slug>
+1) Create branch: issue-<ISSUE>-<slug>
 2) Commit
 3) Push: git push -u origin HEAD
 4) Create PR via GitHub CLI:
