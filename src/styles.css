@@ -17,6 +17,37 @@ body {
   box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
 }
 
+.upload-panel {
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  border: 1px solid #dbe5f5;
+  border-radius: 10px;
+  background: #f8fbff;
+}
+
+.upload-panel h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.upload-empty-state {
+  margin: 0.4rem 0 0.75rem;
+  color: #334155;
+}
+
+#uploadStatus {
+  margin: 0.75rem 0 0;
+  font-weight: 600;
+}
+
+#uploadStatus[data-state="error"] {
+  color: #b91c1c;
+}
+
+#uploadStatus[data-state="success"] {
+  color: #166534;
+}
+
 input {
   width: 100%;
   margin: 0.75rem 0 1rem;

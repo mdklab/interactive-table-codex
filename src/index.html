@@ -9,6 +9,15 @@
   <body>
     <main class="container">
       <h1>Interactive Table</h1>
+
+      <section class="upload-panel" aria-labelledby="uploadHeading">
+        <h2 id="uploadHeading">Upload CSV file</h2>
+        <p class="upload-empty-state">Choose a local CSV file to validate it before parsing.</p>
+        <label for="csvUpload">CSV file</label>
+        <input id="csvUpload" type="file" accept=".csv,text/csv" />
+        <p id="uploadStatus" role="status" aria-live="polite">No file selected yet.</p>
+      </section>
+
       <label for="search">Filter rows</label>
       <input id="search" type="search" placeholder="Type to filter by name or city" />
       <table>

@@ -1,3 +1,5 @@
+import { initCsvUpload } from "./upload.js";
+
 const people = [
   { name: "Ari", role: "Engineer", city: "Seattle" },
   { name: "Bea", role: "Designer", city: "Austin" },
@@ -28,10 +30,13 @@ const init = () => {
   if (typeof document === "undefined") {
     return;
   }
+
   const tableBody = document.querySelector("#tableBody");
   const search = document.querySelector("#search");
   const sortName = document.querySelector("#sortName");
   const sortCity = document.querySelector("#sortCity");
+  const csvUpload = document.querySelector("#csvUpload");
+  const uploadStatus = document.querySelector("#uploadStatus");
 
   if (!tableBody || !search || !sortName || !sortCity) {
     return;
@@ -53,6 +58,8 @@ const init = () => {
     state.sortBy = "city";
     refresh();
   });
+
+  initCsvUpload({ input: csvUpload, status: uploadStatus });
 
   refresh();
 };
