@@ -84,7 +84,7 @@ jobs:
 
             const task = issues.data
               .filter(i => !i.pull_request)
-              .sort((a,b) => new Date(a.created_at) - new Date(b.created_at))[0];
+              .sort((a, b) => a.number - b.number)[0];
 
             if (!task) return;
 
