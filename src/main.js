@@ -126,8 +126,7 @@ const init = () => {
     sortButtons.length === 0 ||
     !clearAllFilters ||
     Object.values(filterInputs).some((input) => !input) ||
-    Object.values(clearButtons).some((button) => !button) ||
-    !processCsv
+    Object.values(clearButtons).some((button) => !button)
   ) {
     return;
   }

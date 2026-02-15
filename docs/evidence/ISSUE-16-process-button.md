@@ -4,6 +4,7 @@
 - Added a dedicated `Process CSV` button to the upload panel so users can proceed after selecting a file.
 - Wired upload validation to enable/disable the process button in real time.
 - Added test coverage for process button state toggling based on selected file validity.
+- Follow-up fix: removed app-level bootstrap dependency on `#processCsv` so sorting/filtering/table rendering still initialize if the upload button is temporarily missing.
 
 ## Why
 - The reported bug indicated users could upload a file but saw no process action in the UI.
@@ -28,5 +29,6 @@
 - Risk level: low
 - Potential regressions:
   - Upload state wiring could regress if upload elements are renamed.
+  - During staggered deploys, upload wiring may be skipped while core table interactions continue (intended fault-tolerant behavior).
 - Rollback plan:
   - Revert commit to restore prior upload panel behavior.
