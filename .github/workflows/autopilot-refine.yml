@@ -7,6 +7,32 @@ on:
 permissions:
   issues: write
 
+env:
+  CI_PROMPT: |
+    @codex
+    You are the project planner.
+    
+    Goal: Convert this Mission issue into 5-15 implementable tasks (GitHub Issues).
+    Constraints:
+    - Follow AGENTS.md (DoD, Evidence Pack, small PRs).
+    - Prefer vertical slices.
+    - Each task must be independently mergeable.
+    - If a task requires cross-cutting refactor, split refactor first as type:chore.
+    
+    Output STRICT JSON in a single code block:
+    ```autopilot-backlog-json
+    [
+      {
+        "title": "...",
+        "body_markdown": "...",
+        "labels": ["status:ready","autopilot:enabled","type:feature","risk:medium"]
+      }
+    ]
+    ```
+    
+    Do NOT write code. Do NOT open PRs. Only produce the JSON list.
+
+
 jobs:
   refine:
     if: github.event.label.name == 'autopilot:refine'
@@ -20,30 +46,7 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
-            const prompt = `
-@codex
-You are the project planner.
-
-Goal: Convert this Mission issue into 5-15 implementable tasks (GitHub Issues).
-Constraints:
-- Follow AGENTS.md (DoD, Evidence Pack, small PRs).
-- Prefer vertical slices.
-- Each task must be independently mergeable.
-- If a task requires cross-cutting refactor, split refactor first as type:chore.
-
-Output STRICT JSON in a single code block:
-\\n\\n\\`\\`\\`autopilot-backlog-json
-[
-  {
-    "title": "...",
-    "body_markdown": "...",
-    "labels": ["status:ready","autopilot:enabled","type:feature","risk:medium"]
-  }
-]
-\\`\\`\\`\\n\\n
-
-Do NOT write code. Do NOT open PRs. Only produce the JSON list.
-`;
+            const prompt = process.env.CI_PROMPT;
 
             await github.rest.issues.createComment({
               owner, repo,
