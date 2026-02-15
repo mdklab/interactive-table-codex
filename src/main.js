@@ -1,5 +1,6 @@
 import { initCsvUpload } from "./upload.js";
-import { SORT_DIRECTIONS, sortRows, toggleSort } from "./sort.js";
+import { SORT_DIRECTIONS, toggleSort } from "./sort.js";
+import { filterRows, sortFilteredRows } from "./tablePerformance.js";
 
 const people = [
   { name: "Ari", role: "Engineer", city: "Seattle" },
@@ -15,19 +16,9 @@ const state = {
   filters: { name: "", role: "", city: "" }
 };
 
-export const applyColumnFilters = (rows, filters) =>
-  rows.filter((row) =>
-    Object.entries(filters).every(([column, query]) => {
-      const normalizedQuery = query.trim().toLowerCase();
-      if (!normalizedQuery) {
-        return true;
-      }
+export const applyColumnFilters = (rows, filters) => filterRows(rows, filters);
 
-      return String(row[column] ?? "").toLowerCase().includes(normalizedQuery);
-    })
-  );
-
-export const getVisibleRows = (rows, filters, sort) => sortRows(applyColumnFilters(rows, filters), sort);
+export const getVisibleRows = (rows, filters, sort) => sortFilteredRows(applyColumnFilters(rows, filters), sort);
 
 export const renderRows = (rows, target) => {
   target.innerHTML = rows
