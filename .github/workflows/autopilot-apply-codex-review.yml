@@ -55,15 +55,25 @@ jobs:
             const repo = context.repo.repo;
 
             const comment = context.payload.comment;
-            const pr = context.payload.pull_request;
-
-            if (!comment || !pr) return;
+            if (!comment) return;
+            
+            let prNumber = context.payload.pull_request?.number ?? null;
+            
+            // pull_request_review_comment часто даёт только pull_request_url
+            if (!prNumber && comment.pull_request_url) {
+              const m = comment.pull_request_url.match(/\/pulls\/(\d+)/);
+              if (m) prNumber = Number(m[1]);
+            }
+            
+            if (!prNumber) {
+              console.log("Could not resolve PR number, skipping.");
+              return;
+            }
+            console.log("Resolved PR:", prNumber);
 
             // Only react to Codex review bot
             const author = comment.user?.login || "";
-            if (author !== "chatgpt-codex-connector") return;
-
-            const prNumber = pr.number;
+            if (!author.startsWith("chatgpt-codex-connector")) return;
 
             // (Optional) Only autopilot PRs - uncomment if you want gating
             // const prLabels = (pr.labels || []).map(l => l.name);
