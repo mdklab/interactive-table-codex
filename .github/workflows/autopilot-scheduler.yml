@@ -17,7 +17,7 @@ env:
     Hard constraints:
     - Follow AGENTS.md.
     - Keep PR small (<= 400 changed lines). If larger, split and deliver first slice.
-    - Add an Evidence Pack: docs/evidence/ISSUE-{{TASK_NUMBER}}-<slug>.md (use template).
+    - Add an Evidence Pack: docs/evidence/ISSUE-{{TASK_NUMBER}}-(slug).md (use template).
     - Run `make ci` and report results in Evidence Pack.
     
     PR requirements:
