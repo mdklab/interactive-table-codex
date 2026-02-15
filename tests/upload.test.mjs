@@ -77,3 +77,25 @@ test("initCsvUpload toggles process button disabled state from file validation",
   assert.equal(processButton.disabled, true);
   assert.equal(status.dataset.state, "error");
 });
+
+
+test("initCsvUpload validates file even without process button", () => {
+  let onChange;
+  const input = {
+    files: [],
+    addEventListener: (eventName, handler) => {
+      if (eventName === "change") {
+        onChange = handler;
+      }
+    }
+  };
+  const status = { textContent: "", dataset: {} };
+
+  initCsvUpload({ input, status });
+
+  input.files = [{ name: "bad.txt", type: "text/plain", size: 4 }];
+  onChange();
+
+  assert.equal(status.dataset.state, "error");
+  assert.equal(status.textContent, "Unsupported file type. Upload a .csv file (UTF-8 text).");
+});

@@ -5,6 +5,7 @@
 - Wired upload validation to enable/disable the process button in real time.
 - Added test coverage for process button state toggling based on selected file validity.
 - Follow-up fix: removed app-level bootstrap dependency on `#processCsv` so sorting/filtering/table rendering still initialize if the upload button is temporarily missing.
+- Follow-up fix: made upload validation status updates resilient when `#processCsv` is absent by treating the process button as optional in upload setup, with test coverage.
 
 ## Why
 - The reported bug indicated users could upload a file but saw no process action in the UI.

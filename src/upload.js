@@ -34,7 +34,7 @@ export const validateCsvFile = (file) => {
 };
 
 export const initCsvUpload = ({ input, status, processButton }) => {
-  if (!input || !status || !processButton) {
+  if (!input || !status) {
     return;
   }
 
@@ -45,6 +45,10 @@ export const initCsvUpload = ({ input, status, processButton }) => {
   };
 
   const setProcessButtonState = (valid) => {
+    if (!processButton) {
+      return;
+    }
+
     processButton.disabled = !valid;
   };
 
