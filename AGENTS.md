@@ -30,3 +30,10 @@ For any code change PR, add/update:
 - P0: security, data integrity, authz, secrets
 - P1: correctness and regressions
 - P2: maintainability
+
+<!--PROTECTED:START-->
+## Non-negotiables
+- Never change production deploy workflow without explicit approval.
+- Never add secrets to repo.
+- Always keep PRs small unless explicitly allowed.
+<!--PROTECTED:END-->
