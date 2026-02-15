@@ -15,6 +15,8 @@ const state = {
   filters: { name: "", role: "", city: "" }
 };
 
+const DEFAULT_RENDER_CHUNK_SIZE = 250;
+
 export const applyColumnFilters = (rows, filters) =>
   rows.filter((row) =>
     Object.entries(filters).every(([column, query]) => {
@@ -27,12 +29,50 @@ export const applyColumnFilters = (rows, filters) =>
     })
   );
 
-export const getVisibleRows = (rows, filters, sort) => sortRows(applyColumnFilters(rows, filters), sort);
+let memoizedInput = null;
+let memoizedFilters = null;
+let memoizedSort = null;
+let memoizedResult = [];
+
+export const getVisibleRows = (rows, filters, sort) => {
+  if (memoizedInput === rows && memoizedFilters === filters && memoizedSort === sort) {
+    return memoizedResult;
+  }
+
+  memoizedInput = rows;
+  memoizedFilters = filters;
+  memoizedSort = sort;
+  memoizedResult = sortRows(applyColumnFilters(rows, filters), sort);
+
+  return memoizedResult;
+};
+
+const renderRowHtml = (row) => `<tr><td>${row.name}</td><td>${row.role}</td><td>${row.city}</td></tr>`;
 
 export const renderRows = (rows, target) => {
-  target.innerHTML = rows
-    .map((row) => `<tr><td>${row.name}</td><td>${row.role}</td><td>${row.city}</td></tr>`)
-    .join("");
+  target.innerHTML = rows.map(renderRowHtml).join("");
+};
+
+const nextPaint =
+  typeof window !== "undefined" && typeof window.requestAnimationFrame === "function"
+    ? () => new Promise((resolve) => window.requestAnimationFrame(() => resolve()))
+    : () => Promise.resolve();
+
+export const renderRowsChunked = async (
+  rows,
+  target,
+  { chunkSize = DEFAULT_RENDER_CHUNK_SIZE, schedule = nextPaint, isCancelled = () => false } = {}
+) => {
+  target.innerHTML = "";
+
+  for (let index = 0; index < rows.length; index += chunkSize) {
+    if (isCancelled()) {
+      return;
+    }
+
+    target.insertAdjacentHTML("beforeend", rows.slice(index, index + chunkSize).map(renderRowHtml).join(""));
+    await schedule();
+  }
 };
 
 const SORT_SYMBOLS = {
@@ -90,40 +130,49 @@ const init = () => {
     return;
   }
 
+  let renderToken = 0;
+
   const refresh = () => {
-    renderRows(getVisibleRows(people, state.filters, state.sort), tableBody);
+    const visibleRows = getVisibleRows(people, state.filters, state.sort);
     renderSortControls(sortButtons, state.sort);
+
+    renderToken += 1;
+    const token = renderToken;
+
+    return renderRowsChunked(visibleRows, tableBody, {
+      isCancelled: () => token !== renderToken
+    });
   };
 
   COLUMNS.forEach((column) => {
     filterInputs[column].addEventListener("input", (event) => {
       state.filters[column] = event.target.value;
-      refresh();
+      void refresh();
     });
 
     clearButtons[column].addEventListener("click", () => {
       state.filters[column] = "";
       filterInputs[column].value = "";
-      refresh();
+      void refresh();
     });
   });
 
   clearAllFilters.addEventListener("click", () => {
     state.sort = { column: null, direction: SORT_DIRECTIONS.NONE };
     resetFilters(filterInputs);
-    refresh();
+    void refresh();
   });
 
   sortButtons.forEach((button) => {
     button.addEventListener("click", () => {
       state.sort = toggleSort(state.sort, button.dataset.sortColumn);
-      refresh();
+      void refresh();
     });
   });
 
   initCsvUpload({ input: csvUpload, status: uploadStatus });
 
-  refresh();
+  void refresh();
 };
 
 init();
