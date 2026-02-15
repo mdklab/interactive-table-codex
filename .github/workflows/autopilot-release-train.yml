@@ -60,5 +60,5 @@ Reply with one of:
             await github.rest.issues.createComment({
               owner, repo,
               issue_number: res.data.number,
-              body: `@YOUR_GITHUB_HANDLE ping — release candidate ready.`
+              body: `@mdklab ping — release candidate ready.`
             });
