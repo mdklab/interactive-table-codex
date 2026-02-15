@@ -1,0 +1,110 @@
+name: Autopilot - Apply Codex Review Feedback
+
+on:
+  pull_request_review_comment:
+    types: [created]
+
+permissions:
+  pull-requests: write
+  issues: write
+
+env:
+  CI_PROMPT: |
+    <!-- {{marker}} -->
+    @codex address that feedback and push to the branch `{{headRef}}`.
+    
+    Constraints:
+    - Do NOT open a new PR.
+    - Apply the changes directly on the existing branch.
+    - Keep changes minimal and tied to the feedback.
+    - Run `make ci` and ensure it is green.
+    - If Evidence Pack needs adjustment, update it.
+    
+    Context:
+    - Review comment: {{comment_html_url}}
+    
+    When done:
+    - Reply in this PR with: {{marker}} DONE
+
+    @codex
+    Implement issue #{{TASK_NUMBER}} as a pull request.
+    
+    Hard constraints:
+    - Follow AGENTS.md.
+    - Keep PR small (<= 400 changed lines). If larger, split and deliver first slice.
+    - Add an Evidence Pack: docs/evidence/ISSUE-{{TASK_NUMBER}}-<slug>.md (use template).
+    - Run `make ci` and report results in Evidence Pack.
+    
+    PR requirements:
+    - Include "Fixes #{{TASK_NUMBER}}" in PR description.
+    - If CI fails, iterate until green.
+    
+    When finished:
+    - Post a short summary comment on the issue with the PR link.
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ask @codex to apply feedback on the same PR branch
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.CODEX_BOT_PAT }}
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const comment = context.payload.comment;
+            const pr = context.payload.pull_request;
+
+            if (!comment || !pr) return;
+
+            // Only react to Codex review bot
+            const author = comment.user?.login || "";
+            if (author !== "chatgpt-codex-connector") return;
+
+            const prNumber = pr.number;
+
+            // (Optional) Only autopilot PRs - uncomment if you want gating
+            // const prLabels = (pr.labels || []).map(l => l.name);
+            // if (!prLabels.includes("autopilot:enabled")) return;
+
+            // Fetch PR to get the current head branch name
+            const prFull = await github.rest.pulls.get({ owner, repo, pull_number: prNumber });
+            const headRef = prFull.data.head.ref;
+
+            // Deduplicate: if we've already spawned a task for this exact review comment, do nothing
+            const marker = `AUTOPILOT_APPLY_CODEX_REVIEW:${comment.id}`;
+            const existing = await github.paginate(github.rest.issues.listComments, {
+              owner, repo,
+              issue_number: prNumber,
+              per_page: 100
+            });
+
+            if (existing.some(c => (c.body || "").includes(marker))) return;
+
+            // Anti-spam cooldown: if we already asked Codex in last 10 minutes, skip
+            const cooldownMin = 10;
+            const now = Date.now();
+            const recentPing = existing
+              .slice(-50)
+              .some(c => {
+                const body = (c.body || "").toLowerCase();
+                if (!body.includes("@codex")) return false;
+                const t = new Date(c.created_at).getTime();
+                return (now - t) < cooldownMin * 60 * 1000;
+              });
+
+            if (recentPing) return;
+
+            let prompt = process.env.CI_PROMPT;
+            prompt = prompt.replace(/\{\{TASK_NUMBER\}\}/g, String(task.number));
+            prompt = prompt.replace(/\{\{headRef\}\}/g, String(headRef));
+            prompt = prompt.replace(/\{\{comment_html_url\}\}/g, comment.html_url);
+            prompt = prompt.replace(/\{\{marker\}\}/g, marker);
+
+            await github.rest.issues.createComment({
+              owner, repo,
+              issue_number: prNumber,
+              body: prompt
+            });
