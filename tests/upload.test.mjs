@@ -24,6 +24,18 @@ test("validateCsvFile rejects non-csv file types", () => {
   assert.equal(result.message, "Invalid file type. Please upload a .csv file.");
 });
 
+
+test("validateCsvFile rejects text/plain when extension is not csv", () => {
+  const result = validateCsvFile({
+    name: "notes.txt",
+    type: "text/plain",
+    size: 18
+  });
+
+  assert.equal(result.valid, false);
+  assert.equal(result.message, "Invalid file type. Please upload a .csv file.");
+});
+
 test("validateCsvFile rejects empty csv files", () => {
   const result = validateCsvFile({
     name: "empty.csv",

@@ -3,8 +3,9 @@
 ## What changed
 - Added a CSV upload panel to the main UI with file input, empty-state guidance, and a live status message area.
 - Added `src/upload.js` to perform client-side validation for missing file selection, CSV type (extension or MIME best effort), and empty file rejection.
+- Tightened MIME handling by excluding generic `text/plain` from the allowlist so non-CSV text files must use a `.csv` extension to pass validation.
 - Wired upload validation into app initialization in `src/main.js`.
-- Added upload validation tests for happy path and invalid selections.
+- Added upload validation tests for happy path and invalid selections, including a regression case that rejects `notes.txt` when reported as `text/plain`.
 
 ## Why
 - Issue #8 requests a small, merge-safe upload UI slice that validates local CSV files entirely in-browser and gives clear feedback before parser/table integration.

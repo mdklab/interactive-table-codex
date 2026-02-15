@@ -1,7 +1,6 @@
 const allowedMimeTypes = new Set([
   "text/csv",
   "application/csv",
-  "text/plain",
   "application/vnd.ms-excel"
 ]);
 
