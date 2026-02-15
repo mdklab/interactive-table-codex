@@ -54,6 +54,10 @@ input {
   padding: 0.65rem;
 }
 
+#clearAllFilters {
+  margin-bottom: 0.8rem;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -74,4 +78,14 @@ th button {
   font: inherit;
   color: #1d4ed8;
   font-weight: 600;
+}
+
+th input[data-filter-column] {
+  margin: 0.5rem 0;
+  width: calc(100% - 2rem);
+}
+
+th button[data-clear-filter] {
+  padding: 0.2rem 0.4rem;
+  color: #334155;
 }

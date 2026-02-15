@@ -18,14 +18,28 @@
         <p id="uploadStatus" role="status" aria-live="polite">No file selected yet.</p>
       </section>
 
-      <label for="search">Filter rows</label>
-      <input id="search" type="search" placeholder="Type to filter by name or city" />
+      <button id="clearAllFilters" type="button">Clear all filters</button>
+
       <table>
         <thead>
           <tr>
             <th><button type="button" data-sort-column="name" data-label="Name">Name ↕</button></th>
             <th><button type="button" data-sort-column="role" data-label="Role">Role ↕</button></th>
             <th><button type="button" data-sort-column="city" data-label="City">City ↕</button></th>
+          </tr>
+          <tr>
+            <th>
+              <input data-filter-column="name" type="search" placeholder="Filter name" aria-label="Filter name" />
+              <button type="button" data-clear-filter="name" aria-label="Clear name filter">×</button>
+            </th>
+            <th>
+              <input data-filter-column="role" type="search" placeholder="Filter role" aria-label="Filter role" />
+              <button type="button" data-clear-filter="role" aria-label="Clear role filter">×</button>
+            </th>
+            <th>
+              <input data-filter-column="city" type="search" placeholder="Filter city" aria-label="Filter city" />
+              <button type="button" data-clear-filter="city" aria-label="Clear city filter">×</button>
+            </th>
           </tr>
         </thead>
         <tbody id="tableBody"></tbody>

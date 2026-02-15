@@ -8,19 +8,26 @@ const people = [
   { name: "Dia", role: "Engineer", city: "Chicago" }
 ];
 
+const COLUMNS = ["name", "role", "city"];
+
 const state = {
   sort: { column: null, direction: SORT_DIRECTIONS.NONE },
-  query: ""
+  filters: { name: "", role: "", city: "" }
 };
 
-export const getVisibleRows = (rows, query, sort) => {
-  const filteredRows = rows.filter((row) => {
-    const haystack = `${row.name} ${row.city}`.toLowerCase();
-    return haystack.includes(query.trim().toLowerCase());
-  });
+export const applyColumnFilters = (rows, filters) =>
+  rows.filter((row) =>
+    Object.entries(filters).every(([column, query]) => {
+      const normalizedQuery = query.trim().toLowerCase();
+      if (!normalizedQuery) {
+        return true;
+      }
 
-  return sortRows(filteredRows, sort);
-};
+      return String(row[column] ?? "").toLowerCase().includes(normalizedQuery);
+    })
+  );
+
+export const getVisibleRows = (rows, filters, sort) => sortRows(applyColumnFilters(rows, filters), sort);
 
 export const renderRows = (rows, target) => {
   target.innerHTML = rows
@@ -49,28 +56,61 @@ const renderSortControls = (buttons, sortState) => {
   });
 };
 
+const resetFilters = (filterInputs) => {
+  COLUMNS.forEach((column) => {
+    state.filters[column] = "";
+    filterInputs[column].value = "";
+  });
+};
+
 const init = () => {
   if (typeof document === "undefined") {
     return;
   }
 
   const tableBody = document.querySelector("#tableBody");
-  const search = document.querySelector("#search");
   const sortButtons = [...document.querySelectorAll("[data-sort-column]")];
+  const filterInputs = Object.fromEntries(
+    COLUMNS.map((column) => [column, document.querySelector(`[data-filter-column='${column}']`)])
+  );
+  const clearButtons = Object.fromEntries(
+    COLUMNS.map((column) => [column, document.querySelector(`[data-clear-filter='${column}']`)])
+  );
+  const clearAllFilters = document.querySelector("#clearAllFilters");
   const csvUpload = document.querySelector("#csvUpload");
   const uploadStatus = document.querySelector("#uploadStatus");
 
-  if (!tableBody || !search || sortButtons.length === 0) {
+  if (
+    !tableBody ||
+    sortButtons.length === 0 ||
+    !clearAllFilters ||
+    Object.values(filterInputs).some((input) => !input) ||
+    Object.values(clearButtons).some((button) => !button)
+  ) {
     return;
   }
 
   const refresh = () => {
-    renderRows(getVisibleRows(people, state.query, state.sort), tableBody);
+    renderRows(getVisibleRows(people, state.filters, state.sort), tableBody);
     renderSortControls(sortButtons, state.sort);
   };
 
-  search.addEventListener("input", (event) => {
-    state.query = event.target.value;
+  COLUMNS.forEach((column) => {
+    filterInputs[column].addEventListener("input", (event) => {
+      state.filters[column] = event.target.value;
+      refresh();
+    });
+
+    clearButtons[column].addEventListener("click", () => {
+      state.filters[column] = "";
+      filterInputs[column].value = "";
+      refresh();
+    });
+  });
+
+  clearAllFilters.addEventListener("click", () => {
+    state.sort = { column: null, direction: SORT_DIRECTIONS.NONE };
+    resetFilters(filterInputs);
     refresh();
   });
 
