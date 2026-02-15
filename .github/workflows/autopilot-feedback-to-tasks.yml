@@ -47,7 +47,7 @@ jobs:
             }
 
             let prompt = process.env.CI_PROMPT || "";
-            prompt = prompt.replace("{{COMMENT}}", () => comment);
+            prompt = prompt.replace(/\{\{COMMENT\}\}/g, () => String(comment));
 
             await github.rest.issues.createComment({
               owner, repo, issue_number: issue.number,

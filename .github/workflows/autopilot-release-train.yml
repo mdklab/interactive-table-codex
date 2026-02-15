@@ -50,7 +50,7 @@ jobs:
             const notes = `${{ steps.notes.outputs.notes }}`;
 
             let body = process.env.CI_BODY;
-            body = body.replace("{{NOTES}}", notes);
+            body = body.replace(/\{\{NOTES\}\}/g, String(notes));
     
             await github.rest.issues.createComment({
               owner, repo,
