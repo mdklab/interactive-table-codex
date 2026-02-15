@@ -20,6 +20,17 @@ jobs:
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
+            // Only accept backlog JSON coming from Codex bot (prevents parsing our own prompt samples)
+            const author = context.payload.comment.user?.login || "";
+            const allowedAuthors = new Set([
+              "mdklab",
+              "chatgpt-codex-connector",
+              "codex",
+              "openai-codex"
+            ]);
+            if (!allowedAuthors.has(author)) return;
+
+
             const start = "```autopilot-backlog-json";
             const end = "```";
             const i = body.indexOf(start);
@@ -51,6 +62,9 @@ jobs:
             const created = [];
             for (const t of tasks) {
               const title = (t.title || "Untitled task").slice(0, 240);
+              if (!title || title === "...") {
+                return;
+              }
               const labels = Array.isArray(t.labels) ? t.labels : ["status:ready","autopilot:enabled"];
               const bodyMarkdown =
                 (t.body_markdown || "") +
