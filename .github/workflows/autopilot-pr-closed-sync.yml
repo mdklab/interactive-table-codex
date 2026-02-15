@@ -1,0 +1,38 @@
+name: Autopilot - PR Closed Sync
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  issues: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update linked issue status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pr = context.payload.pull_request;
+
+            const body = pr.body || "";
+            const m = body.match(/Fixes\s+#(\d+)/i);
+            if (!m) return;
+
+            const issueNumber = Number(m[1]);
+            const merged = !!pr.merged;
+
+            // Remove transient statuses
+            await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name: "status:in-progress" }).catch(()=>{});
+            await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name: "status:review" }).catch(()=>{});
+
+            if (merged) {
+              await github.rest.issues.addLabels({ owner, repo, issue_number: issueNumber, labels: ["status:merged"] }).catch(()=>{});
+            } else {
+              // PR closed without merge -> put task back to ready
+              await github.rest.issues.addLabels({ owner, repo, issue_number: issueNumber, labels: ["status:ready"] }).catch(()=>{});
+            }
