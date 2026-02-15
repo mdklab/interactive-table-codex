@@ -1,0 +1,32 @@
+name: Autopilot - CI Autofix
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  autofix:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comment on PR to ask Codex to fix CI
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const prs = context.payload.workflow_run.pull_requests || [];
+            if (prs.length === 0) return;
+
+            const prNumber = prs[0].number;
+            const runUrl = context.payload.workflow_run.html_url;
+
+            await github.rest.issues.createComment({
+              owner, repo,
+              issue_number: prNumber,
+              body: `@codex fix the CI failures\\n\\nFailed run: ${runUrl}`
+            });

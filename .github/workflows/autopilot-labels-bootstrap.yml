@@ -1,0 +1,59 @@
+name: Autopilot - Bootstrap Labels
+
+on:
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create standard labels
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const labels = [
+              // statuses
+              ["status:backlog", "0E8A16"],
+              ["status:ready", "0E8A16"],
+              ["status:in-progress", "FBCA04"],
+              ["status:review", "FBCA04"],
+              ["status:blocked", "D93F0B"],
+              ["status:merged", "5319E7"],
+              ["status:release-candidate", "5319E7"],
+
+              // types
+              ["type:feature", "1D76DB"],
+              ["type:bug", "D93F0B"],
+              ["type:chore", "C5DEF5"],
+
+              // autopilot
+              ["autopilot:enabled", "BFDADC"],
+              ["autopilot:refine", "BFDADC"],
+              ["autopilot:paused", "000000"],
+              ["autopilot:auto-merge-ok", "BFDADC"],
+              ["autopilot:do-not-merge", "000000"],
+
+              // risk
+              ["risk:low", "0E8A16"],
+              ["risk:medium", "FBCA04"],
+              ["risk:high", "D93F0B"],
+            ];
+
+            for (const [name, color] of labels) {
+              try {
+                await github.rest.issues.createLabel({ owner, repo, name, color });
+              } catch (e) {
+                // ignore "already exists"
+              }
+            }
+
+            await github.rest.issues.createComment({
+              owner, repo, issue_number: 1,
+              body: "Labels bootstrapped (if issue #1 exists)."
+            }).catch(()=>{});

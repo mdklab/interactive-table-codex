@@ -1,0 +1,74 @@
+name: Autopilot - Import Backlog
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  issues: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create child issues from backlog JSON
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.comment.body || "";
+            const issueNumber = context.payload.issue.number;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const start = "```autopilot-backlog-json";
+            const end = "```";
+            const i = body.indexOf(start);
+            if (i === -1) return;
+
+            const j = body.indexOf(end, i + start.length);
+            if (j === -1) return;
+
+            const jsonText = body.slice(i + start.length, j).trim();
+            let tasks;
+            try {
+              tasks = JSON.parse(jsonText);
+            } catch (e) {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: issueNumber,
+                body: `Backlog JSON parse failed: ${e.message}`
+              });
+              return;
+            }
+
+            if (!Array.isArray(tasks) || tasks.length < 1 || tasks.length > 25) {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: issueNumber,
+                body: `Backlog JSON must be an array of 1..25 tasks. Got ${Array.isArray(tasks) ? tasks.length : typeof tasks}`
+              });
+              return;
+            }
+
+            const created = [];
+            for (const t of tasks) {
+              const title = (t.title || "Untitled task").slice(0, 240);
+              const labels = Array.isArray(t.labels) ? t.labels : ["status:ready","autopilot:enabled"];
+              const bodyMarkdown =
+                (t.body_markdown || "") +
+                `\\n\\n---\\nPart of #${issueNumber}\\n`;
+
+              const res = await github.rest.issues.create({
+                owner, repo,
+                title,
+                body: bodyMarkdown,
+                labels
+              });
+              created.push(`#${res.data.number} ${res.data.title}`);
+            }
+
+            await github.rest.issues.createComment({
+              owner, repo, issue_number: issueNumber,
+              body: `Created tasks:\\n` + created.map(x => `- ${x}`).join("\\n")
+            });
+
+            await github.rest.issues.removeLabel({ owner, repo, issue_number: issueNumber, name: "autopilot:refine" }).catch(() => {});
+            await github.rest.issues.addLabels({ owner, repo, issue_number: issueNumber, labels: ["status:backlog"] }).catch(() => {});

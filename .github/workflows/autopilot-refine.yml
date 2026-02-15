@@ -1,0 +1,52 @@
+name: Autopilot - Refine Mission
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  issues: write
+
+jobs:
+  refine:
+    if: github.event.label.name == 'autopilot:refine'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ask Codex to break down into tasks
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const issue = context.payload.issue;
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const prompt = `
+@codex
+You are the project planner.
+
+Goal: Convert this Mission issue into 5-15 implementable tasks (GitHub Issues).
+Constraints:
+- Follow AGENTS.md (DoD, Evidence Pack, small PRs).
+- Prefer vertical slices.
+- Each task must be independently mergeable.
+- If a task requires cross-cutting refactor, split refactor first as type:chore.
+
+Output STRICT JSON in a single code block:
+\\n\\n\\`\\`\\`autopilot-backlog-json
+[
+  {
+    "title": "...",
+    "body_markdown": "...",
+    "labels": ["status:ready","autopilot:enabled","type:feature","risk:medium"]
+  }
+]
+\\`\\`\\`\\n\\n
+
+Do NOT write code. Do NOT open PRs. Only produce the JSON list.
+`;
+
+            await github.rest.issues.createComment({
+              owner, repo,
+              issue_number: issue.number,
+              body: prompt
+            });
