@@ -26,22 +26,6 @@ env:
     When done:
     - Reply in this PR with: {{marker}} DONE
 
-    @codex
-    Implement issue #{{TASK_NUMBER}} as a pull request.
-    
-    Hard constraints:
-    - Follow AGENTS.md.
-    - Keep PR small (<= 400 changed lines). If larger, split and deliver first slice.
-    - Add an Evidence Pack: docs/evidence/ISSUE-{{TASK_NUMBER}}-<slug>.md (use template).
-    - Run `make ci` and report results in Evidence Pack.
-    
-    PR requirements:
-    - Include "Fixes #{{TASK_NUMBER}}" in PR description.
-    - If CI fails, iterate until green.
-    
-    When finished:
-    - Post a short summary comment on the issue with the PR link.
-
 jobs:
   apply:
     runs-on: ubuntu-latest
@@ -108,7 +92,6 @@ jobs:
             if (recentPing) return;
 
             let prompt = process.env.CI_PROMPT;
-            prompt = prompt.replace(/\{\{TASK_NUMBER\}\}/g, String(task.number));
             prompt = prompt.replace(/\{\{headRef\}\}/g, String(headRef));
             prompt = prompt.replace(/\{\{comment_html_url\}\}/g, comment.html_url);
             prompt = prompt.replace(/\{\{marker\}\}/g, marker);
