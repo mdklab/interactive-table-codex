@@ -33,15 +33,22 @@ export const validateCsvFile = (file) => {
   };
 };
 
-export const initCsvUpload = ({ input, status }) => {
-  if (!input || !status) {
+export const initCsvUpload = ({ input, status, processButton }) => {
+  if (!input || !status || !processButton) {
     return;
   }
 
   const setStatus = ({ valid, message }) => {
     status.textContent = message;
     status.dataset.state = valid ? "success" : "error";
+    setProcessButtonState(valid);
   };
+
+  const setProcessButtonState = (valid) => {
+    processButton.disabled = !valid;
+  };
+
+  setProcessButtonState(false);
 
   input.addEventListener("change", () => {
     const [selectedFile] = input.files ?? [];
