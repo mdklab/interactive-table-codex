@@ -23,6 +23,14 @@ Target: <= 400 changed lines (add+del). If larger, stop and propose a split plan
 If these targets are missing or broken, your first task is to fix/define them.
 
 ## Evidence Pack
+After implementing:
+1) Create branch: work/issue-<ISSUE>-<slug>
+2) Commit
+3) Push: git push -u origin HEAD
+4) Create PR via GitHub CLI:
+   gh pr create --base main --head <branch> --title "<issue title>" --body "Fixes #<ISSUE>"
+5) Post PR link back to the issue.
+
 For any code change PR, add/update:
 - `docs/evidence/ISSUE-<number>-<slug>.md`
 
