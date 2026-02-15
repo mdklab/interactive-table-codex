@@ -37,7 +37,7 @@ export const buildAccessibleTableHTML = ({
   }
 
   if (!headers.length || !rows.length) {
-    return "<p>No data available to display.</p>";
+    return "<p>No data rows to display yet. Upload a CSV file or adjust active filters.</p>";
   }
 
   return renderDataTable({ headers, rows, caption });
