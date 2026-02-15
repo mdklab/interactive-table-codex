@@ -21,7 +21,7 @@ test("validateCsvFile rejects non-csv file types", () => {
   });
 
   assert.equal(result.valid, false);
-  assert.equal(result.message, "Invalid file type. Please upload a .csv file.");
+  assert.equal(result.message, "Unsupported file type. Upload a .csv file (UTF-8 text).");
 });
 
 
@@ -33,7 +33,7 @@ test("validateCsvFile rejects text/plain when extension is not csv", () => {
   });
 
   assert.equal(result.valid, false);
-  assert.equal(result.message, "Invalid file type. Please upload a .csv file.");
+  assert.equal(result.message, "Unsupported file type. Upload a .csv file (UTF-8 text).");
 });
 
 test("validateCsvFile rejects empty csv files", () => {
@@ -44,5 +44,5 @@ test("validateCsvFile rejects empty csv files", () => {
   });
 
   assert.equal(result.valid, false);
-  assert.equal(result.message, "The selected CSV file is empty. Please choose a file with data.");
+  assert.equal(result.message, "The selected CSV file is empty. Add at least one header row and one data row.");
 });

@@ -16,7 +16,7 @@ test("buildAccessibleTableHTML renders parse error state as alert", () => {
 
 test("buildAccessibleTableHTML renders empty-data state", () => {
   const html = buildAccessibleTableHTML({ status: "ready", headers: ["Name"], rows: [] });
-  assert.match(html, /No data available to display/);
+  assert.match(html, /No data rows to display yet/);
 });
 
 test("buildAccessibleTableHTML renders semantic table from parser output", () => {

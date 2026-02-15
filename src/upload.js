@@ -6,7 +6,7 @@ const allowedMimeTypes = new Set([
 
 export const validateCsvFile = (file) => {
   if (!file) {
-    return { valid: false, message: "Please choose a CSV file to upload." };
+    return { valid: false, message: "No file selected. Choose a CSV file to continue." };
   }
 
   const fileName = file.name ?? "";
@@ -16,14 +16,14 @@ export const validateCsvFile = (file) => {
   if (!hasCsvExtension && !hasKnownCsvMime) {
     return {
       valid: false,
-      message: "Invalid file type. Please upload a .csv file."
+      message: "Unsupported file type. Upload a .csv file (UTF-8 text)."
     };
   }
 
   if (file.size === 0) {
     return {
       valid: false,
-      message: "The selected CSV file is empty. Please choose a file with data."
+      message: "The selected CSV file is empty. Add at least one header row and one data row."
     };
   }
 
