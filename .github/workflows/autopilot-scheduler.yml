@@ -1,0 +1,83 @@
+name: Autopilot - Scheduler
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"   # every 15 minutes
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: read
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pick a task and delegate to Codex
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // Stop switch: if there exists any open issue labeled autopilot:paused, do nothing
+            const paused = await github.rest.issues.listForRepo({
+              owner, repo,
+              labels: "autopilot:paused",
+              state: "open",
+              per_page: 1
+            });
+            if (paused.data.length > 0) return;
+
+            // Concurrency guard: do not start if there is any open PR labeled autopilot:enabled
+            const prs = await github.rest.pulls.list({
+              owner, repo,
+              state: "open",
+              per_page: 50
+            });
+            const openAutopilotPR = prs.data.find(pr =>
+              (pr.labels || []).some(l => l.name === "autopilot:enabled")
+            );
+            if (openAutopilotPR) return;
+
+            // Find next task
+            const issues = await github.rest.issues.listForRepo({
+              owner, repo,
+              state: "open",
+              labels: "status:ready,autopilot:enabled",
+              per_page: 50
+            });
+
+            const task = issues.data
+              .filter(i => !i.pull_request)
+              .sort((a,b) => new Date(a.created_at) - new Date(b.created_at))[0];
+
+            if (!task) return;
+
+            // Move status -> in-progress
+            await github.rest.issues.removeLabel({ owner, repo, issue_number: task.number, name: "status:ready" }).catch(()=>{});
+            await github.rest.issues.addLabels({ owner, repo, issue_number: task.number, labels: ["status:in-progress"] }).catch(()=>{});
+
+            const prompt = `
+@codex
+Implement issue #${task.number} as a pull request.
+
+Hard constraints:
+- Follow AGENTS.md.
+- Keep PR small (<= 400 changed lines). If larger, split and deliver first slice.
+- Add an Evidence Pack: docs/evidence/ISSUE-${task.number}-<slug>.md (use template).
+- Run \\`make ci\\` and report results in Evidence Pack.
+
+PR requirements:
+- Include "Fixes #${task.number}" in PR description.
+- If CI fails, iterate until green.
+
+When finished:
+- Post a short summary comment on the issue with the PR link.
+`;
+
+            await github.rest.issues.createComment({
+              owner, repo,
+              issue_number: task.number,
+              body: prompt
+            });

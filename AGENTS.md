@@ -1,24 +1,32 @@
-# AGENTS.md
+# AGENTS.md — Project working agreements (Codex + humans)
 
-## Project context (short)
-- This repo is the source of truth.
-- Work is evidence-driven: every PR must include an Evidence Pack file.
+## North Star
+Ship small, safe, verifiable changes. Every PR must be easy to review and easy to roll back.
 
-## Definition of done
-- `make ci` is green locally/in CI.
-- PR includes an Evidence Pack under docs/evidence/.
-- No secrets / tokens / PII in logs.
+## Definition of Done (DoD)
+- CI is green (`make ci`).
+- Evidence Pack updated (see docs/evidence/TEMPLATE.md).
+- Tests added/updated for new behavior (or explicitly justified in Evidence Pack).
+- No secrets, tokens, PII in logs or code.
+- PR is small. If not small, split into multiple PRs.
 
-## Review guidelines
-- Flag P0/P1 issues only.
-- Treat security regressions, auth issues, and data integrity as P0.
-- Prefer small PRs (<= 400 changed lines) unless explicitly allowed.
-- If change is large, split into multiple PRs.
+## PR size rule
+Target: <= 400 changed lines (add+del). If larger, stop and propose a split plan.
 
-## Architecture & conventions
-- Prefer existing patterns over inventing new ones.
-- Add tests for new behavior (unit/integration as appropriate).
+## Commands (single source of truth)
+- `make ci`     # run everything required for merge
+- `make test`
+- `make lint`
+- `make fmt`
+- `make dev`
 
-## Evidence Pack rules
-- Always write what you ran (`make ci`, etc) and the result.
-- Include a short risk/rollback note.
+If these targets are missing or broken, your first task is to fix/define them.
+
+## Evidence Pack
+For any code change PR, add/update:
+- `docs/evidence/ISSUE-<number>-<slug>.md`
+
+## Review priorities
+- P0: security, data integrity, authz, secrets
+- P1: correctness and regressions
+- P2: maintainability
