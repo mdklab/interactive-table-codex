@@ -84,7 +84,7 @@ jobs:
             if (existing.some(c => (c.body || "").includes(marker))) return;
 
             // Anti-spam cooldown: if we already asked Codex in last 10 minutes, skip
-            const cooldownMin = 10;
+            const cooldownMin = 0;
             const now = Date.now();
             const recentPing = existing
               .slice(-50)
