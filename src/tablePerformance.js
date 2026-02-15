@@ -27,8 +27,8 @@ export const getVisibleRange = ({
     return { start: 0, end: 0 };
   }
 
-  const firstVisible = Math.floor(scrollTop / rowHeight);
-  const visibleCount = Math.ceil(viewportHeight / rowHeight);
+  const firstVisible = Math.floor(scrollTop/rowHeight);
+  const visibleCount = Math.ceil(viewportHeight/rowHeight);
   const start = Math.max(0, firstVisible - overscan);
   const end = Math.min(totalRows, firstVisible + visibleCount + overscan);
 
