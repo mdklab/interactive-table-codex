@@ -1,4 +1,4 @@
-# AGENTS.md — Project working agreements (Codex + humans)
+# AGENTS.md â€” Project working agreements (Codex + humans)
 
 ## North Star
 Ship small, safe, verifiable changes. Every PR must be easy to review and easy to roll back.
