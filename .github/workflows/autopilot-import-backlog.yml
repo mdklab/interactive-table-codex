@@ -16,6 +16,11 @@ jobs:
         with:
           github-token: ${{ secrets.CODEX_BOT_PAT }}
           script: |
+            core.info("---- context.repo ----")
+            core.info(JSON.stringify(context.repo, null, 2))
+            core.info("---- context.payload ----")
+            core.info(JSON.stringify(context.payload, null, 2))
+
             const body = context.payload.comment.body || "";
             const issueNumber = context.payload.issue.number;
             const owner = context.repo.owner;
