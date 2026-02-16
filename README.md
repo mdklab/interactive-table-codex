@@ -37,6 +37,13 @@ Minimal static frontend app demonstrating CSV upload validation, column sorting,
 - Row virtualization is not implemented (rendering uses chunked updates for responsiveness).
 - Parsed CSV preview rendering exists in utilities/tests, but the main UI currently focuses on fixed demo columns (`name`, `role`, `city`).
 
+## Test fixtures and deterministic data
+- Shared test factories live in `tests/fixtures.mjs`.
+- Use `buildPeopleRows({ count, seed, clock })` for repeatable row setup in unit/smoke/E2E-style logic tests.
+- Use `createSeededRandom(seed)` when random-like variation is needed without flakiness.
+- Use `createDeterministicClock({ startAt, stepMs })` for controllable timestamp progression in tests.
+- Use `buildCsvFile({ name, type, size })` to keep upload validation tests concise and consistent.
+
 ## Troubleshooting
 - **No file selected**: choose a CSV file before trying to proceed.
 - **Unsupported file type**: ensure the filename ends in `.csv`.
