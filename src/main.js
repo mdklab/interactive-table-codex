@@ -15,6 +15,7 @@ const state = {
   filters: { name: "", role: "", city: "" }
 };
 
+
 const DEFAULT_RENDER_CHUNK_SIZE = 250;
 
 export const applyColumnFilters = (rows, filters) =>
