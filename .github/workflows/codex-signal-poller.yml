@@ -1,0 +1,49 @@
+name: Poll Codex signal
+
+on:
+  schedule:
+    - cron: "*/5 * * * *" # GitHub Actions minimum is every 5 minutes
+  workflow_dispatch: {}
+
+permissions:
+  pull-requests: read
+  actions: write
+
+jobs:
+  poll:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch gate workflow for all open PRs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const core = require('@actions/core');
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const prs = await github.paginate(github.rest.pulls.list, {
+              owner, repo, state: 'open', per_page: 100
+            });
+
+            core.info(`Open PRs: ${prs.length}`);
+
+            for (const pr of prs) {
+              // If PR comes from a fork, workflow_dispatch on that ref may fail without a PAT.
+              if (pr.head?.repo?.fork) {
+                core.info(`Skipping PR #${pr.number} (fork).`);
+                continue;
+              }
+
+              core.info(`Dispatching gate for PR #${pr.number} ref=${pr.head.sha.slice(0,7)}`);
+
+              await github.rest.actions.createWorkflowDispatch({
+                owner,
+                repo,
+                workflow_id: 'require-codex-signal.yml',
+                ref: pr.head.sha,
+                inputs: {
+                  pr_number: String(pr.number),
+                }
+              });
+            }
