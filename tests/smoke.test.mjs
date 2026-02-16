@@ -2,12 +2,14 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { applyColumnFilters, getVisibleRows } from "../src/main.js";
 import { SORT_DIRECTIONS } from "../src/sort.js";
+import { buildPeopleRows } from "./fixtures.mjs";
 
-const rows = [
-  { name: "Yui", role: "Engineer", city: "Denver" },
-  { name: "Ana", role: "PM", city: "Austin" },
-  { name: "Ben", role: "Engineer", city: "Austin" }
-];
+const rows = buildPeopleRows({ count: 3, seed: 11 }).map((row, index) => ({
+  ...row,
+  name: ["Yui", "Ana", "Ben"][index],
+  role: ["Engineer", "PM", "Engineer"][index],
+  city: ["Denver", "Austin", "Austin"][index]
+}));
 
 test("applyColumnFilters supports single and multi-column filtering", () => {
   const single = applyColumnFilters(rows, { name: "", role: "engine", city: "" });

@@ -2,9 +2,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { getVisibleRows, renderRowsChunked } from "../src/main.js";
 import { SORT_DIRECTIONS } from "../src/sort.js";
+import { buildPeopleRows } from "./fixtures.mjs";
 
 const buildRows = (count) =>
-  Array.from({ length: count }, (_, index) => ({
+  buildPeopleRows({ count, seed: 61 }).map((row, index) => ({
+    ...row,
     name: `Person ${String(count - index).padStart(5, "0")}`,
     role: index % 2 === 0 ? "Engineer" : "Designer",
     city: index % 3 === 0 ? "Austin" : "Seattle"
