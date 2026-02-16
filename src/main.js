@@ -16,7 +16,7 @@ const state = {
 };
 
 
-const DEFAULT_RENDER_CHUNK_SIZE = 250;
+const DEFAULT_RENDER_CHUNK_SIZE = 25 * 10;
 
 export const applyColumnFilters = (rows, filters) =>
   rows.filter((row) =>
