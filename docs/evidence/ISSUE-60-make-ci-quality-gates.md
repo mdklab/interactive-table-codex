@@ -35,3 +35,13 @@
   - CI behavior now depends on new script names (`test:unit`, `test:smoke`), so renaming scripts without updating Makefile would break checks.
 - Rollback plan:
   - Revert this commit to restore prior `make`/npm script wiring.
+
+## Follow-up adjustments (PR feedback)
+- Updated `.github/workflows/require-codex-signal.yml` to accept multiple Codex bot identities via `CODEX_LOGINS` (`codex`, `openai-codex`, `chatgpt-codex-connector`) when checking reactions/comments.
+- Added a PR-number fallback for `pull_request_review_comment` events by parsing `context.payload.comment.pull_request_url`, preventing false "No PR number found" skips.
+
+### Verification for follow-up
+- `make ci`:
+  - Result: ✅ pass
+  - Notes: Workflow and test/lint/build checks completed successfully after the workflow update.
+
