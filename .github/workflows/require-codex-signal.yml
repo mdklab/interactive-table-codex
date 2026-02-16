@@ -1,0 +1,146 @@
+name: Require Codex signal
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  pull_request_review:
+    types: [submitted]
+  pull_request_review_comment:
+    types: [created, edited]
+  issue_comment:
+    types: [created, edited]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Pull request number"
+        required: true
+        type: string
+
+permissions:
+  pull-requests: read
+  issues: read
+
+jobs:
+  gate:
+    name: codex-reviewed
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Codex +1 or replied Codex comment
+        uses: actions/github-script@v7
+        env:
+          CODEX_LOGIN: codex
+        with:
+          script: |
+            const core = require('@actions/core');
+
+            const lower = (s) => (s || '').toLowerCase();
+            const codexLogin = lower(process.env.CODEX_LOGIN || 'codex');
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // Determine PR number from different event payloads
+            let pull_number = null;
+
+            if (context.payload.pull_request?.number) pull_number = context.payload.pull_request.number;
+            if (!pull_number && context.payload.issue?.number && context.payload.issue?.pull_request) pull_number = context.payload.issue.number;
+            if (!pull_number && context.payload.inputs?.pr_number) pull_number = Number(context.payload.inputs.pr_number);
+
+            if (!pull_number) {
+              core.info('No PR number found in payload; skipping.');
+              return;
+            }
+
+            const pr = await github.rest.pulls.get({ owner, repo, pull_number }).then(r => r.data);
+
+            if (pr.state !== 'open') {
+              core.info('PR is not open; skipping gate.');
+              return;
+            }
+
+            if (pr.draft) {
+              core.info('Draft PR; skipping gate.');
+              return;
+            }
+
+            core.info(`PR #${pull_number} HEAD=${pr.head.sha.slice(0,7)} CODEX_LOGIN=${codexLogin}`);
+
+            // --- 1) Look for Codex +1 reaction anywhere (PR body, issue comments, review comments) ---
+            const reactions = [];
+
+            // PR body reactions (PR is an issue)
+            const prBodyReactions = await github.paginate(github.rest.reactions.listForIssue, {
+              owner, repo, issue_number: pull_number, per_page: 100
+            });
+            for (const r of prBodyReactions) reactions.push({ where: 'pr_body', content: r.content, user: r.user?.login, created_at: r.created_at });
+
+            // Issue comments (conversation tab comments)
+            const issueComments = await github.paginate(github.rest.issues.listComments, {
+              owner, repo, issue_number: pull_number, per_page: 100
+            });
+
+            for (const c of issueComments) {
+              const rs = await github.paginate(github.rest.reactions.listForIssueComment, {
+                owner, repo, comment_id: c.id, per_page: 100
+              });
+              for (const r of rs) reactions.push({ where: `issue_comment:${c.id}`, content: r.content, user: r.user?.login, created_at: r.created_at });
+            }
+
+            // Review comments (inline diff comments)
+            const reviewComments = await github.paginate(github.rest.pulls.listReviewComments, {
+              owner, repo, pull_number, per_page: 100
+            });
+
+            for (const c of reviewComments) {
+              const rs = await github.paginate(github.rest.reactions.listForPullRequestReviewComment, {
+                owner, repo, comment_id: c.id, per_page: 100
+              });
+              for (const r of rs) reactions.push({ where: `review_comment:${c.id}`, content: r.content, user: r.user?.login, created_at: r.created_at });
+            }
+
+            const hasCodexPlusOne = reactions.some(r => lower(r.user) === codexLogin && r.content === '+1');
+            core.info(`Codex +1 found: ${hasCodexPlusOne}`);
+
+            // --- 2) "Resolved" Codex comment = any Codex comment that has a reply ---
+            // 2.1 Issue comments: treat as "replied" if there is any later non-Codex comment after Codex comment time
+            const codexIssueComments = issueComments
+              .filter(c => lower(c.user?.login) === codexLogin)
+              .sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+
+            const hasReplyToAnyCodexIssueComment = codexIssueComments.some(cc =>
+              issueComments.some(c =>
+                lower(c.user?.login) !== codexLogin && new Date(c.created_at) > new Date(cc.created_at)
+              )
+            );
+
+            core.info(`Reply after Codex issue comment found: ${hasReplyToAnyCodexIssueComment}`);
+
+            // 2.2 Review comments: treat as "replied" if there is any review comment with in_reply_to_id pointing to Codex comment id
+            const repliesByParent = new Map();
+            for (const c of reviewComments) {
+              if (c.in_reply_to_id) {
+                const arr = repliesByParent.get(c.in_reply_to_id) || [];
+                arr.push(c);
+                repliesByParent.set(c.in_reply_to_id, arr);
+              }
+            }
+
+            const codexReviewComments = reviewComments.filter(c => lower(c.user?.login) === codexLogin);
+
+            const hasReplyToAnyCodexReviewComment = codexReviewComments.some(cc => {
+              const replies = repliesByParent.get(cc.id) || [];
+              return replies.some(r => lower(r.user?.login) !== codexLogin);
+            });
+
+            core.info(`Reply to Codex review comment found: ${hasReplyToAnyCodexReviewComment}`);
+
+            const hasResolvedCodexComment = hasReplyToAnyCodexIssueComment || hasReplyToAnyCodexReviewComment;
+
+            if (!hasCodexPlusOne && !hasResolvedCodexComment) {
+              throw new Error(
+                `Waiting for Codex signal: either a "+1" reaction by @${codexLogin} ` +
+                `or a reply to any Codex comment (issue comment or inline review comment).`
+              );
+            }
+
+            core.info('✅ Codex signal satisfied.');
