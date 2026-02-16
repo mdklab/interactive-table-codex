@@ -48,13 +48,14 @@ Minimal static frontend app demonstrating CSV upload validation, column sorting,
 Run:
 - `make ci`
 
-This runs format, lint, tests, and build checks required for merge.
+This runs format and lint checks, the unit test suite, a smoke-test subset, and build checks required for merge.
 
 ## Commands
 - `make setup`
 - `make fmt`
 - `make lint`
 - `make test`
+- `make test-smoke`
 - `make build`
 - `make ci`
 - `make dev`
