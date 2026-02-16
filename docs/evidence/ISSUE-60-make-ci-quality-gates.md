@@ -4,10 +4,12 @@
 - Updated `Makefile` to make `make ci` explicitly run setup, fmt, lint, unit tests, smoke tests, and build with clear step-by-step output banners.
 - Added explicit `test:unit` and `test:smoke` npm scripts and wired `test` to run both.
 - Updated README command docs so the smoke subset is documented as a first-class quality gate.
+- Updated `.github/workflows/require-codex-signal.yml` so the Codex signal gate accepts all Codex bot login variants and can resolve PR numbers from review-comment `pull_request_url` payloads.
 
 ## Why
 - Issue #60 requires `make ci`, `make test`, `make lint`, and `make fmt` to be the single source of truth and deterministic in local/CI.
 - Explicit quality-gate phases improve debuggability and ensure smoke checks are always exercised during CI.
+- Follow-up fixes keep the `codex-reviewed` required check satisfiable across bot-account variants and review-comment payload shapes used by this repository.
 
 ## How to verify
 ### Automated
