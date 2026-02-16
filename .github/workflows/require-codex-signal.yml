@@ -29,10 +29,29 @@ jobs:
         uses: actions/github-script@v7
         env:
           CODEX_LOGIN: codex
+          CODEX_LOGINS: codex,chatgpt-codex-connector,openai-codex
         with:
           script: |
             const lower = (s) => (s || '').toLowerCase();
-            const codexLogin = lower(process.env.CODEX_LOGIN || 'codex');
+            const normalizeLogin = (s) => lower(s).replace(/\[bot\]$/, '');
+            const codexLogin = normalizeLogin(process.env.CODEX_LOGIN || 'codex');
+            const codexLogins = new Set([
+              codexLogin,
+              ...String(process.env.CODEX_LOGINS || '')
+                .split(',')
+                .map(normalizeLogin)
+                .filter(Boolean),
+              'codex',
+              'chatgpt-codex-connector',
+              'openai-codex',
+            ]);
+            const isCodexUser = (login) => {
+              const normalized = normalizeLogin(login);
+              if (!normalized) return false;
+              if (codexLogins.has(normalized)) return true;
+              // Some connector logins are suffixed; keep match narrow.
+              return normalized.startsWith('chatgpt-codex-connector');
+            };
 
             const owner = context.repo.owner;
             const repo = context.repo.repo;
@@ -61,7 +80,7 @@ jobs:
               return;
             }
 
-            core.info(`PR #${pull_number} HEAD=${pr.head.sha.slice(0,7)} CODEX_LOGIN=${codexLogin}`);
+            core.info(`PR #${pull_number} HEAD=${pr.head.sha.slice(0,7)} CODEX_LOGIN=${codexLogin} CODEX_LOGINS=${Array.from(codexLogins).sort().join(',')}`);
 
             // --- 1) Look for Codex +1 reaction anywhere (PR body, issue comments, review comments) ---
             const reactions = [];
@@ -96,18 +115,18 @@ jobs:
               for (const r of rs) reactions.push({ where: `review_comment:${c.id}`, content: r.content, user: r.user?.login, created_at: r.created_at });
             }
 
-            const hasCodexPlusOne = reactions.some(r => lower(r.user) === codexLogin && r.content === '+1');
+            const hasCodexPlusOne = reactions.some(r => isCodexUser(r.user) && r.content === '+1');
             core.info(`Codex +1 found: ${hasCodexPlusOne}`);
 
             // --- 2) "Resolved" Codex comment = any Codex comment that has a reply ---
             // 2.1 Issue comments: treat as "replied" if there is any later non-Codex comment after Codex comment time
             const codexIssueComments = issueComments
-              .filter(c => lower(c.user?.login) === codexLogin)
+              .filter(c => isCodexUser(c.user?.login))
               .sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
 
             const hasReplyToAnyCodexIssueComment = codexIssueComments.some(cc =>
               issueComments.some(c =>
-                lower(c.user?.login) !== codexLogin && new Date(c.created_at) > new Date(cc.created_at)
+                !isCodexUser(c.user?.login) && new Date(c.created_at) > new Date(cc.created_at)
               )
             );
 
@@ -123,11 +142,11 @@ jobs:
               }
             }
 
-            const codexReviewComments = reviewComments.filter(c => lower(c.user?.login) === codexLogin);
+            const codexReviewComments = reviewComments.filter(c => isCodexUser(c.user?.login));
 
             const hasReplyToAnyCodexReviewComment = codexReviewComments.some(cc => {
               const replies = repliesByParent.get(cc.id) || [];
-              return replies.some(r => lower(r.user?.login) !== codexLogin);
+              return replies.some(r => !isCodexUser(r.user?.login));
             });
 
             core.info(`Reply to Codex review comment found: ${hasReplyToAnyCodexReviewComment}`);
@@ -141,4 +160,4 @@ jobs:
               );
             }
 
-            core.info('✅ Codex signal satisfied.');
+            core.info('Codex signal satisfied.');
