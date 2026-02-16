@@ -16,11 +16,9 @@ jobs:
         with:
           github-token: ${{ secrets.CODEX_BOT_PAT }}
           script: |
-            core.info("---- context.repo ----")
-            core.info(JSON.stringify(context.repo, null, 2))
-
             const body = context.payload.comment.body || "";
             const issueNumber = context.payload.issue.number;
+            const commentId = context.payload.comment.id;
             const owner = context.repo.owner;
             const repo = context.repo.repo;
 
@@ -32,7 +30,12 @@ jobs:
               "codex",
               "openai-codex"
             ]);
-            if (!allowedAuthors.has(author)) return;
+            if (!allowedAuthors.has(author)) {
+              core.info(`Ignoring backlog import request from non-allowlisted author: ${author || "unknown"}`);
+              return;
+            }
+
+            core.info(`Processing backlog import request repo=${owner}/${repo} issue=${issueNumber} comment=${commentId} author=${author}`);
 
 
             const start = "```autopilot-backlog-json";

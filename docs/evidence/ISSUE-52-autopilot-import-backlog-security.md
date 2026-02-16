@@ -1,12 +1,13 @@
 # Evidence Pack — Harden autopilot backlog import logging
 
 ## What changed
-- Removed raw `context.payload` logging from `.github/workflows/autopilot-import-backlog.yml`.
-- Kept minimal repository-level logging (`context.repo`) that does not include user-supplied comment content.
+- Removed early workflow logging of webhook data in `.github/workflows/autopilot-import-backlog.yml` to avoid recording untrusted comment content before author validation.
+- Added minimal, sanitized workflow logs (`owner/repo`, issue number, comment id, and author) only after allowlist checks pass.
+- Added a single informational log when a non-allowlisted author is ignored.
 
 ## Why
-- Reviewer feedback identified that logging full webhook payload captures untrusted comment text before allowlist checks.
-- This could leak sensitive content to Action logs and enable log-command style injection strings.
+- Reviewer feedback identified that logging webhook payload data before allowlist checks can capture untrusted comment text.
+- This can leak sensitive content to Action logs and allow workflow-command style strings to appear in logs.
 
 ## How to verify
 ### Automated
