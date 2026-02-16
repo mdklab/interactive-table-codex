@@ -34,7 +34,7 @@ jobs:
               "codex",
               "openai-codex"
             ]);
-            if (!allowedAuthors.has(author) && !allowedAuthors.has(author+'[bot]')) return;
+            if (!allowedAuthors.has(author.replace("[bot]", "")) return;
 
             const start = "```autopilot-backlog-json";
             const end = "```";
