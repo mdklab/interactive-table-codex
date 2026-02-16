@@ -35,13 +35,13 @@ jobs:
                 continue;
               }
 
-              core.info(`Dispatching gate for PR #${pr.number} ref=${pr.head.sha.slice(0,7)}`);
+              core.info(`Dispatching gate for PR #${pr.number} ref=${pr.head.ref}`);
 
               await github.rest.actions.createWorkflowDispatch({
                 owner,
                 repo,
                 workflow_id: 'require-codex-signal.yml',
-                ref: pr.head.sha,
+                ref: pr.head.ref,
                 inputs: {
                   pr_number: String(pr.number),
                 }
