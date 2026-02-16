@@ -31,8 +31,6 @@ jobs:
           CODEX_LOGIN: codex
         with:
           script: |
-            const core = require('@actions/core');
-
             const lower = (s) => (s || '').toLowerCase();
             const codexLogin = lower(process.env.CODEX_LOGIN || 'codex');
 
