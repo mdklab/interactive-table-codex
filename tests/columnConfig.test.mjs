@@ -72,3 +72,12 @@ test("renderRowCells falls back to safe string conversion for invalid renderer o
     { key: "role", content: "" }
   ]);
 });
+
+
+test("renderRowCells uses default callbacks when formatter/renderer are undefined", () => {
+  const row = { name: "Ari" };
+
+  const cells = renderRowCells([{ key: "name", formatter: undefined, renderer: undefined }], row);
+
+  assert.deepEqual(cells, [{ key: "name", content: "Ari" }]);
+});

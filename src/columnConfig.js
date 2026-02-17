@@ -6,6 +6,9 @@ const defaultColumn = {
   renderer: DEFAULT_RENDERER
 };
 
+const resolveCallback = (candidate, fallback) =>
+  typeof candidate === "function" ? candidate : fallback;
+
 export const normalizeColumns = (columns = []) =>
   columns
     .filter((column) => column && typeof column.key === "string" && column.key.length > 0)
@@ -18,9 +21,11 @@ export const normalizeColumns = (columns = []) =>
     .filter((column) => column.visible);
 
 const renderCellValue = (column, row) => {
+  const formatter = resolveCallback(column.formatter, defaultColumn.formatter);
+  const renderer = resolveCallback(column.renderer, defaultColumn.renderer);
   const mapped = column.value ? column.value(row) : row[column.key];
-  const formatted = column.formatter(mapped, row);
-  const rendered = column.renderer(formatted, row);
+  const formatted = formatter(mapped, row);
+  const rendered = renderer(formatted, row);
 
   return typeof rendered === "string" ? rendered : DEFAULT_RENDERER(rendered);
 };

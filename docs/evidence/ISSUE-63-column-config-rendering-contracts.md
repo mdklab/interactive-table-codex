@@ -3,6 +3,7 @@
 ## What changed
 - Added `src/columnConfig.js` with focused helpers to normalize column configuration (visibility, ordering, defaults) and resolve rendered cell content from value mapping, formatters, and renderers.
 - Added `tests/columnConfig.test.mjs` to cover regression-prone column configuration and rendering contract behavior, including missing keys and invalid renderer outputs.
+- Hardened callback handling so `undefined`/non-function `formatter` or `renderer` values now safely fall back to defaults instead of throwing at runtime.
 - Updated `package.json` so the new unit test file runs in the merge-gating unit test suite.
 
 ## Why
